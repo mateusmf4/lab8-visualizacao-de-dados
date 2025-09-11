@@ -151,7 +151,7 @@
         Projeto de Visualização Interativa de Dados
       </h2>
       <h4 style="text-align: center">
-        <u>Grupo D</u>: Primeiro_Nome_1 Último_Nome_1,  Primeiro_Nome_2 Último_Nome_2,  Primeiro_Nome_3 Último_Nome_3, … &nbsp; &nbsp;
+        <u>Grupo D</u>: Daniele Oliveira, Filipe Luiz, João Victor Cosme, Maria Helena Satyro, Mateus Medeiros
       </h4>
       <h2 style="text-align: center">
         <span style="
@@ -253,7 +253,9 @@
 
     for (let i = 0; i <= 2; ++i) {
       document.getElementById('btn-stress-' + i).addEventListener('click', e => {
-        if (currentChart === 1) {
+        if (currentChart === 0) {
+          barsMedia(i);
+        } else if (currentChart === 1) {
           barsMedia(i);
         } else if (currentChart === 2) {
           barsCategoria(i, currentCategory);
