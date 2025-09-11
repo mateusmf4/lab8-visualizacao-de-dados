@@ -92,6 +92,24 @@
         padding: 20px 50px;
         background-color: #a4dceb;
       }
+
+      .botao-estresse {
+        border: 0;
+        cursor: pointer;
+        width: 100%;
+
+        --_color: rgb(75, 167, 144);
+
+        --_actual-color: var(--_color);
+        background: var(--_actual-color);
+        border: 2px solid color-mix(in oklch, var(--_actual-color), black 20%);
+
+        transition: all 100ms;
+      }
+
+      .botao-estresse:hover {
+        --_actual-color: color-mix(in oklch, var(--_color), white 20%);
+      }
     </style>
   </head>
   <body>
@@ -145,35 +163,26 @@
       </p>
     </div>
 
-    <div id="div-controls" style="max-width: 1200px; padding: 10px 50px; margin-inline: auto; display: flex; justify-content: center; flex-direction: column; align-items: center;">
-      <button type="button" id="btn-voltar">Voltar</button>
-      <div style="user-select: none;">
-        <label>
-          <input type="radio" name="stress" id="radio-1">
-          Eustresse
-        </label>
-        <label>
-          <input type="radio" name="stress" id="radio-0">
-          Distresse
-        </label>
-        <label>
-          <input type="radio" name="stress" id="radio-2">
-          Sem estresse
-        </label>
+    <div style="max-width: 1200px; height: 500px; margin-inline: auto; display: flex; position: relative;">
+      <div style="width: 100px; display: flex; flex-direction: column; align-items: center; gap: 35px;">
+        <button type="button" id="btn-voltar">Voltar</button>
+        <div style="display: flex; flex-direction: column; flex: 1; align-items: stretch; width: 100%; margin-bottom: 65px;">
+          <button id="btn-stress-2" type="button" class="botao-estresse" style="flex: 8;">N</button>
+          <button id="btn-stress-1" type="button" class="botao-estresse" style="flex: 86;">E</button>
+          <button id="btn-stress-0" type="button" class="botao-estresse" style="flex: 11;">D</button>
+        </div>
       </div>
-    </div>
-    <div id="container" style="max-width: 1200px; height: 500px; padding: 10px 50px 10px 50px; margin-inline: auto;">
+      <div id="container" style="flex: 1;"></div>
     </div>
 
-    <div id="footer" style="height: 2%; margin-top: 150px">
+    <div id="footer" style="height: 2%; margin-top: 50px">
       <p style="text-align: justify; padding: 20px 50px 0px 50px">
         <b>Dicas para interagir com a visualização</b>:
       </p>
       <ul style="padding: 0px 50px 10px 75px;">
-      <li>Inserir aqui breves instruções para o usuário navegar na visualização e usar o máximo dos recursos de interação disponíveis.</li>
-      <li>...</li>
-      <li>...</li>
-    </ul>
+        <li>Clique na area de interesse para ver mais detalhes sobre aquele tipo de estresse</li>
+        <li>Clique em cada categoria para ver todas as perguntas relevantes</li>
+      </ul>
     </div>
 
   <script type="text/javascript" src="https://fastly.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
@@ -186,9 +195,6 @@
       useDirtyRect: false
     });
     var app = {};
-    const divControls = document.getElementById("div-controls");
-    const btnVoltar = document.getElementById("btn-voltar");
-    divControls.style.opacity = 0;
 
     function median(arr) {
       arr.sort();
@@ -223,6 +229,38 @@
     let currentStress = 0;
     let currentCategory = "AES";
 
+    function updateControls() {
+      for (let i = 0; i <= 2; ++i) {
+        const elem = document.getElementById('btn-stress-' + i);
+        if (currentChart === 0 || i === currentStress) {
+          elem.style.opacity = 1.0;
+          elem.style.setProperty('--_color', cores[i]);
+        } else {
+          elem.style.opacity = 0.5;
+        }
+      }
+      document.getElementById('btn-voltar').style.opacity = currentChart === 0 ? 0 : 1;
+    }
+    updateControls();
+
+    document.getElementById('btn-voltar').addEventListener('click', () => {
+      if (currentChart === 1) {
+        stackedChart();
+      } else if (currentChart === 2) {
+        barsMedia(currentStress);
+      }
+    });
+
+    for (let i = 0; i <= 2; ++i) {
+      document.getElementById('btn-stress-' + i).addEventListener('click', e => {
+        if (currentChart === 1) {
+          barsMedia(i);
+        } else if (currentChart === 2) {
+          barsCategoria(i, currentCategory);
+        }
+      })
+    }
+
     myChart.showLoading();
 
     let dados;
@@ -252,7 +290,7 @@
 
     function stackedChart() {
       currentChart = 0;
-      divControls.style.opacity = 0;
+      updateControls();
 
       let option = {
         title: {
@@ -269,7 +307,12 @@
           },
         },
         legend: {
-          data: ['Email', 'Union Ads', 'Video Ads']
+          data: ["Eustresse", "Distresse", "Sem estresse"],
+          orient: 'vertical',
+          icon: 'rect',
+          left: 'right',
+          top: 56,
+          selectedMode: false,
         },
         xAxis: [
           {
@@ -357,9 +400,8 @@
       let prevChart = currentChart;
       currentChart = 1;
       currentStress = stressIndex;
-      divControls.style.opacity = 1;
+      updateControls();
 
-      document.getElementById('radio-' + stressIndex).checked = true;
       const stress = stresses[stressIndex];
       const values = Object.keys(categorias).map(category => {
         const keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
@@ -379,6 +421,12 @@
           show: false,
         },
         xAxis: {
+          name: 'Escala Likert',
+          nameLocation: 'middle',
+          nameGap: 30,
+          nameTextStyle: {
+            fontStyle: 'italic',
+          },
           type: 'value',
           min: 1,
           max: 5,
@@ -388,7 +436,7 @@
         },
         series: [
           {
-            data: values.map(x => x),
+            data: values,
             type: 'scatter',
             symbolSize: 30,
             label: {
@@ -419,7 +467,7 @@
       currentChart = 2;
       currentStress = stressIndex;
       currentCategory = category;
-      divControls.style.opacity = 1;
+      updateControls();
 
       const stress = stresses[stressIndex];
       let keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
@@ -443,6 +491,12 @@
           show: false,
         },
         xAxis: {
+          name: 'Escala Likert',
+          nameLocation: 'middle',
+          nameGap: 30,
+          nameTextStyle: {
+            fontStyle: 'italic',
+          },
           type: 'value',
           min: 1,
           max: 5,
@@ -481,26 +535,6 @@
       if (currentChart !== 1) return;
       barsCategoria(currentStress, Object.keys(categorias)[params.dataIndex]);
     });
-
-    btnVoltar.addEventListener('click', () => {
-      if (currentChart === 1) {
-        stackedChart();
-      } else if (currentChart === 2) {
-        barsMedia(currentStress);
-      }
-    });
-
-    for (let i = 0; i < 3; ++i) {
-      document.getElementById('radio-' + i).addEventListener('change', e => {
-        if (e.target.checked) {
-          if (currentChart === 1) {
-            barsMedia(i);
-          } else if (currentChart === 2) {
-            barsCategoria(i, currentCategory);
-          }
-        }
-      })
-    }
 
     window.addEventListener('resize', myChart.resize);
   </script>
