@@ -145,24 +145,24 @@
       </p>
     </div>
 
-    <div style="max-width: 1200px; padding: 10px 50px; margin-inline: auto; display: flex; justify-content: center; flex-direction: column; align-items: center;">
+    <div id="div-controls" style="max-width: 1200px; padding: 10px 50px; margin-inline: auto; display: flex; justify-content: center; flex-direction: column; align-items: center;">
       <button type="button" id="btn-voltar">Voltar</button>
       <div style="user-select: none;">
         <label>
-          <input type="radio" name="stress">
+          <input type="radio" name="stress" id="radio-1">
           Eustresse
         </label>
         <label>
-          <input type="radio" name="stress">
+          <input type="radio" name="stress" id="radio-0">
           Distresse
         </label>
         <label>
-          <input type="radio" name="stress">
+          <input type="radio" name="stress" id="radio-2">
           Sem estresse
         </label>
       </div>
     </div>
-    <div id="container" style="max-width: 1200px; height: 470px; padding: 10px 50px 10px 50px; margin-inline: auto;">
+    <div id="container" style="max-width: 1200px; height: 500px; padding: 10px 50px 10px 50px; margin-inline: auto;">
     </div>
 
     <div id="footer" style="height: 2%; margin-top: 150px">
@@ -186,9 +186,9 @@
       useDirtyRect: false
     });
     var app = {};
-    let whichChart = 0;
-    const botao = document.getElementById("btn-voltar");
-    botao.style.display = 'none';
+    const divControls = document.getElementById("div-controls");
+    const btnVoltar = document.getElementById("btn-voltar");
+    divControls.style.opacity = 0;
 
     function median(arr) {
       arr.sort();
@@ -204,11 +204,27 @@
       return arr.reduce((acc, x) => acc + x, 0) / arr.length;
     }
 
+    const filterOut = ['Gender', 'Age', 'Which type of stress do you primarily experience?'];
+    const stresses = ["DIS", "EUS", "NOS"];
+    const stressNames = ["Distresse", "Eustresse", "Sem estresse"];
+    const cores = ["#e790ab", "#8eda90", "#849fe8"]
+    const categorias = {
+      "AES": "Academico",
+      "ESI": "Emocional",
+      "SRF": "Social",
+      "PHI": "Fisico"
+    };
+
     const percDistress = [];
     const percEustress = [];
     const percNostress = [];
 
+    let currentChart = 0;
+    let currentStress = 0;
+    let currentCategory = "AES";
+
     myChart.showLoading();
+
     let dados;
     fetch("./dados.json").then(r => r.json()).catch(e => alert("Erro ao carregar dados!")).then(d => {
       dados = d;
@@ -230,13 +246,14 @@
 
       myChart.hideLoading();
       stackedChart();
-      // barsMedianaPorCategoria(1, "AES")
-      // barsMedianaMediana(1)
+      // barsMedia(1)
+      // barsCategoria(1, "AES")
     });
 
     function stackedChart() {
-      whichChart = 0;
-      botao.style.display = 'none';
+      currentChart = 0;
+      divControls.style.opacity = 0;
+
       let option = {
         title: {
           text: "Tipos de estresse em estudantes",
@@ -248,8 +265,8 @@
           axisPointer: {
             label: {
               formatter: ({value}) => `${value} anos`
-            }
-          }
+            },
+          },
         },
         legend: {
           data: ['Email', 'Union Ads', 'Video Ads']
@@ -285,61 +302,69 @@
             type: 'line',
             stack: 'Total',
             smooth: true,
-            areaStyle: {},
             emphasis: {
               focus: 'self'
             },
             data: percDistress,
             animation: false,
+            areaStyle: {
+              color: cores[0],
+            },
+            itemStyle: {
+              color: cores[0],
+            },
           },
           {
             name: 'Eustresse',
             type: 'line',
             stack: 'Total',
             smooth: true,
-            areaStyle: {},
             emphasis: {
               focus: 'self'
             },
             data: percEustress,
             animation: false,
+            areaStyle: {
+              color: cores[1],
+            },
+            itemStyle: {
+              color: cores[1],
+            },
           },
           {
             name: 'Sem estresse',
             type: 'line',
             stack: 'Total',
             smooth: true,
-            areaStyle: {},
             emphasis: {
               focus: 'self'
             },
             data: percNostress,
             animation: false,
+            areaStyle: {
+              color: cores[2],
+            },
+            itemStyle: {
+              color: cores[2],
+            },
           },
         ]
       };
       myChart.setOption(option, true);
     }
 
-    const filterOut = ['Gender', 'Age', 'Which type of stress do you primarily experience?'];
-    const stresses = ["DIS", "EUS", "NOS"];
-    const stressNames = ["Distresse", "Eustresse", "Sem estresse"];
-    const categorias = {
-      "AES": "Academico",
-      "ESI": "Emocional",
-      "SRF": "Social",
-      "PHI": "Fisico"
-    };
+    function barsMedia(stressIndex) {
+      let prevChart = currentChart;
+      currentChart = 1;
+      currentStress = stressIndex;
+      divControls.style.opacity = 1;
 
-    function barsMedianaMediana(stressIndex) {
-      whichChart = 1;
-      botao.style.display = 'block';
+      document.getElementById('radio-' + stressIndex).checked = true;
       const stress = stresses[stressIndex];
       const values = Object.keys(categorias).map(category => {
         const keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
         const values = keys.map(key => dados[stress][category].map(x => x[key]));
         const medians = values.map(x => average(x));
-        // return average(medians);
         return average(values.flat());
       });
 
@@ -351,7 +376,7 @@
         yAxis: {
           type: 'category',
           data: Object.values(categorias),
-          offset: 50,
+          show: false,
         },
         xAxis: {
           type: 'value',
@@ -366,6 +391,14 @@
             data: values.map(x => x),
             type: 'scatter',
             symbolSize: 30,
+            label: {
+              show: true,
+              formatter: ({name}) => name,
+              position: 'right',
+            },
+            itemStyle: {
+              color: cores[stressIndex]
+            },
           }
         ],
         tooltip: {
@@ -378,16 +411,16 @@
           },
           formatter: x => ""
         },
-        grid: {
-          containLabel: true
-        },
       };
-      myChart.setOption(option, true);
+      myChart.setOption(option, prevChart === 0);
     }
 
-    function barsMedianaPorCategoria(stressIndex, category) {
-      whichChart = 2;
-      botao.style.display = 'block';
+    function barsCategoria(stressIndex, category) {
+      currentChart = 2;
+      currentStress = stressIndex;
+      currentCategory = category;
+      divControls.style.opacity = 1;
+
       const stress = stresses[stressIndex];
       let keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
       const rawValues = keys.map(key => dados[stress][category].map(x => x[key]));
@@ -407,11 +440,10 @@
           type: 'category',
           data: keys,
           offset: 50,
+          show: false,
         },
         xAxis: {
           type: 'value',
-          // min: -2,
-          // max: 2
           min: 1,
           max: 5,
           axisLabel: {
@@ -420,43 +452,55 @@
         },
         series: [
           {
-            // data: values.map(x => x - 3),
             data: values,
             type: 'scatter',
             symbolSize: 30,
+            label: {
+              show: true,
+              formatter: ({name}) => name,
+              position: stressIndex === 0 ? 'left' : 'right'
+            },
+            itemStyle: {
+              color: cores[stressIndex]
+            }
           }
         ],
-        grid: {
-          containLabel: true
-        },
       };
       myChart.setOption(option, true);
     }
 
-    let currentStress;
-
     myChart.getZr().on('click', (params) => {
-      if (whichChart !== 0) return;
+      if (currentChart !== 0) return;
       if (!params.target) return;
       let keys = Object.keys(params.target).filter(key => key.includes('__ec_inner_')).filter(key => params.target[key].seriesIndex !== undefined);
       if (!keys.length) return;
-      const series = params.target[keys[0]].seriesIndex;
-      currentStress = series;
-      barsMedianaMediana(series);
+      barsMedia(params.target[keys[0]].seriesIndex);
     });
 
     myChart.on('click', (params) => {
-      if (whichChart !== 1) return;
-      barsMedianaPorCategoria(currentStress, Object.keys(categorias)[params.dataIndex]);
+      if (currentChart !== 1) return;
+      barsCategoria(currentStress, Object.keys(categorias)[params.dataIndex]);
     });
 
-    botao.addEventListener('click', () => {
-      if (whichChart === 1) {
+    btnVoltar.addEventListener('click', () => {
+      if (currentChart === 1) {
         stackedChart();
-      } else if (whichChart === 2) {
-        barsMedianaMediana(currentStress);
+      } else if (currentChart === 2) {
+        barsMedia(currentStress);
       }
     });
+
+    for (let i = 0; i < 3; ++i) {
+      document.getElementById('radio-' + i).addEventListener('change', e => {
+        if (e.target.checked) {
+          if (currentChart === 1) {
+            barsMedia(i);
+          } else if (currentChart === 2) {
+            barsCategoria(i, currentCategory);
+          }
+        }
+      })
+    }
 
     window.addEventListener('resize', myChart.resize);
   </script>
