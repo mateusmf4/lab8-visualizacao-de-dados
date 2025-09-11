@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab8 - Grupo D</title>
 
@@ -145,8 +145,22 @@
       </p>
     </div>
 
-    <div style="max-width: 1200px; padding: 10px 50px; margin-inline: auto; display: flex; justify-content: center;">
+    <div style="max-width: 1200px; padding: 10px 50px; margin-inline: auto; display: flex; justify-content: center; flex-direction: column; align-items: center;">
       <button type="button" id="btn-voltar">Voltar</button>
+      <div style="user-select: none;">
+        <label>
+          <input type="radio" name="stress">
+          Eustresse
+        </label>
+        <label>
+          <input type="radio" name="stress">
+          Distresse
+        </label>
+        <label>
+          <input type="radio" name="stress">
+          Sem estresse
+        </label>
+      </div>
     </div>
     <div id="container" style="max-width: 1200px; height: 470px; padding: 10px 50px 10px 50px; margin-inline: auto;">
     </div>
@@ -186,6 +200,10 @@
       }
     }
 
+    function average(arr) {
+      return arr.reduce((acc, x) => acc + x, 0) / arr.length;
+    }
+
     const percDistress = [];
     const percEustress = [];
     const percNostress = [];
@@ -212,6 +230,8 @@
 
       myChart.hideLoading();
       stackedChart();
+      // barsMedianaPorCategoria(1, "AES")
+      // barsMedianaMediana(1)
     });
 
     function stackedChart() {
@@ -243,7 +263,8 @@
             },
             type: 'category',
             boundaryGap: false,
-            data: [17, 18, 19, 20, 21, 22, "23*", 24]
+            // data: [17, 18, 19, 20, 21, 22, "23*", 24]
+            data: [17, 18, 19, 20, 21, 22],
           }
         ],
         yAxis: [
@@ -260,7 +281,7 @@
         ],
         series: [
           {
-            name: 'Distress',
+            name: 'Distresse',
             type: 'line',
             stack: 'Total',
             smooth: true,
@@ -268,10 +289,11 @@
             emphasis: {
               focus: 'self'
             },
-            data: percDistress
+            data: percDistress,
+            animation: false,
           },
           {
-            name: 'Eustress',
+            name: 'Eustresse',
             type: 'line',
             stack: 'Total',
             smooth: true,
@@ -279,10 +301,11 @@
             emphasis: {
               focus: 'self'
             },
-            data: percEustress
+            data: percEustress,
+            animation: false,
           },
           {
-            name: 'No stress',
+            name: 'Sem estresse',
             type: 'line',
             stack: 'Total',
             smooth: true,
@@ -290,11 +313,12 @@
             emphasis: {
               focus: 'self'
             },
-            data: percNostress
+            data: percNostress,
+            animation: false,
           },
         ]
       };
-      myChart.setOption(option);
+      myChart.setOption(option, true);
     }
 
     const filterOut = ['Gender', 'Age', 'Which type of stress do you primarily experience?'];
@@ -307,40 +331,6 @@
       "PHI": "Fisico"
     };
 
-    function barsMedianaPorCategoria(stressIndex, category) {
-      whichChart = 2;
-      botao.style.display = 'block';
-      const stress = stresses[stressIndex];
-      const keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
-      const values = keys.map(key => dados[stress][category].map(x => x[key]));
-      const medians = values.map(x => median(x));
-      let option = {
-        title: {
-          text: `Mediana das perguntas da categoria "${categorias[category]}"`,
-          left: "center"
-        },
-        yAxis: {
-          type: 'category',
-          data: keys
-        },
-        xAxis: {
-          type: 'value',
-          min: 0,
-          max: 5
-        },
-        series: [
-          {
-            data: medians,
-            type: 'bar'
-          }
-        ],
-        grid: {
-          containLabel: true // Ensures labels are contained within the grid
-        },
-      };
-      myChart.setOption(option, true);
-    }
-
     function barsMedianaMediana(stressIndex) {
       whichChart = 1;
       botao.style.display = 'block';
@@ -348,32 +338,96 @@
       const values = Object.keys(categorias).map(category => {
         const keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
         const values = keys.map(key => dados[stress][category].map(x => x[key]));
-        const medians = values.map(x => median(x));
-        return median(medians);
+        const medians = values.map(x => average(x));
+        // return average(medians);
+        return average(values.flat());
       });
 
       let option = {
         title: {
-          text: `Mediana das medianas`,
+          text: `Média das respostas, por categoria`,
           left: "center"
         },
         yAxis: {
           type: 'category',
-          data: Object.values(categorias)
+          data: Object.values(categorias),
+          offset: 50,
         },
         xAxis: {
           type: 'value',
-          min: 0,
-          max: 5
+          min: 1,
+          max: 5,
+          axisLabel: {
+            formatter: x => ["Discordo totalmente", "Discordo parcialmente", "Indiferente", "Concordo parcialmente", "Concordo totalmente"][x - 1]
+          }
         },
         series: [
           {
+            data: values.map(x => x),
+            type: 'scatter',
+            symbolSize: 30,
+          }
+        ],
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow',
+            shadowStyle: {
+              color: 'rgba(150, 150, 200, 0.1)'
+            }
+          },
+          formatter: x => ""
+        },
+        grid: {
+          containLabel: true
+        },
+      };
+      myChart.setOption(option, true);
+    }
+
+    function barsMedianaPorCategoria(stressIndex, category) {
+      whichChart = 2;
+      botao.style.display = 'block';
+      const stress = stresses[stressIndex];
+      let keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
+      const rawValues = keys.map(key => dados[stress][category].map(x => x[key]));
+      let medians = rawValues.map(x => average(x));
+
+      // ordena pelo valor
+      let pairs = keys.map((key, i) => [key, medians[i]]).sort((a, b) => b[1] - a[1]);
+      keys = pairs.map(([k, _]) => k);
+      let values = pairs.map(([_, v]) => v);
+
+      let option = {
+        title: {
+          text: `Média das perguntas da categoria "${categorias[category]}"`,
+          left: "center"
+        },
+        yAxis: {
+          type: 'category',
+          data: keys,
+          offset: 50,
+        },
+        xAxis: {
+          type: 'value',
+          // min: -2,
+          // max: 2
+          min: 1,
+          max: 5,
+          axisLabel: {
+            formatter: x => ["Discordo totalmente", "Discordo parcialmente", "Indiferente", "Concordo parcialmente", "Concordo totalmente"][x - 1]
+          }
+        },
+        series: [
+          {
+            // data: values.map(x => x - 3),
             data: values,
-            type: 'bar'
+            type: 'scatter',
+            symbolSize: 30,
           }
         ],
         grid: {
-          containLabel: true // Ensures labels are contained within the grid
+          containLabel: true
         },
       };
       myChart.setOption(option, true);
@@ -388,7 +442,7 @@
       if (!keys.length) return;
       const series = params.target[keys[0]].seriesIndex;
       currentStress = series;
-      barsMedianaMediana(series, "SRF");
+      barsMedianaMediana(series);
     });
 
     myChart.on('click', (params) => {
@@ -403,7 +457,6 @@
         barsMedianaMediana(currentStress);
       }
     });
-
 
     window.addEventListener('resize', myChart.resize);
   </script>
