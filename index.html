@@ -156,10 +156,13 @@
       <h2 style="text-align: center">
         <span style="
           font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
-        "><strong>Título da visualização</strong></span>
+        "><strong>Tipos de estresses e seus fatores em estudantes universitários (de 17 a 22 anos)</strong></span>
       </h2>
       <p style="text-align: justify; padding: 10px 50px 10px 50px">
-        Breve resumo sobre os dados (e as histórias) visualizadas.
+        Os dados foram coletados através de 843 estudantes universitários, de 17 a 22 anos, em relação as suas experiencias com o estresse e seus impactos.
+        Os dados coletados são varias perguntas em forma de questionario, com respostas de 1 (Discordo totalmente) a 5 (Concordo totalmente).
+
+        (breve resumo das historias visualizadas)
       </p>
     </div>
 
@@ -208,6 +211,14 @@
 
     function average(arr) {
       return arr.reduce((acc, x) => acc + x, 0) / arr.length;
+    }
+
+    function arrMin(arr) {
+      return arr.reduce((a, v) => (v < a ? v : a));
+    }
+
+    function arrMax(arr) {
+      return arr.reduce((a, v) => (v > a ? v : a));
     }
 
     const filterOut = ['Gender', 'Age', 'Which type of stress do you primarily experience?'];
@@ -308,13 +319,25 @@
             },
           },
         },
+        grid: {
+          right: '15%',
+        },
         legend: {
-          data: ["Eustresse", "Distresse", "Sem estresse"],
+          data: ["Estresse positivo", "Estresse negativo", "Sem estresse"],
           orient: 'vertical',
           icon: 'rect',
-          left: 'right',
+          right: 0,
           top: 56,
           selectedMode: false,
+          formatter: name => {
+            if (name === 'Estresse positivo') {
+              return "Eustresse -\nEstresse positivo,\nque motiva e melhora\no desempenho"
+            } else if (name === 'Estresse negativo') {
+              return "Distresse -\nEstresse negativo,\nque causa ansiedade\ne afeta o bem-estar"
+            } else {
+              return "Sem estresse -\nPouco ou quase\nnenhum sinal\nde estresse"
+            }
+          }
         },
         xAxis: [
           {
@@ -343,7 +366,7 @@
         ],
         series: [
           {
-            name: 'Distresse',
+            name: 'Estresse negativo',
             type: 'line',
             stack: 'Total',
             smooth: true,
@@ -360,7 +383,7 @@
             },
           },
           {
-            name: 'Eustresse',
+            name: 'Estresse positivo',
             type: 'line',
             stack: 'Total',
             smooth: true,
@@ -405,17 +428,24 @@
       updateControls();
 
       const stress = stresses[stressIndex];
-      const values = Object.keys(categorias).map(category => {
+      const values = Object.keys(categorias).map((category, i) => {
         const keys = Object.keys(dados[stress][category][0]).filter(x => !filterOut.includes(x));
         const values = keys.map(key => dados[stress][category].map(x => x[key]));
+        // console.log(values.flat());
+        // return values.flat();
         const medians = values.map(x => average(x));
-        return average(values.flat());
+        // return average(values.flat());
+        // return medians;
+        return {
+          value: [i, arrMin(medians), arrMax(medians)]
+        }
       });
 
       let option = {
         title: {
           text: `Média das respostas, por categoria`,
-          left: "center"
+          left: "center",
+          subtext: "Concordância as perguntas tende a indicar estresse"
         },
         yAxis: {
           type: 'category',
@@ -437,18 +467,57 @@
           }
         },
         series: [
+          // {
+          //   data: values,
+          //   type: 'scatter',
+          //   symbolSize: 30,
+          //   label: {
+          //     show: true,
+          //     formatter: ({name}) => name,
+          //     position: 'right',
+          //   },
+          //   itemStyle: {
+          //     color: cores[stressIndex]
+          //   },
+          // }
           {
             data: values,
-            type: 'scatter',
-            symbolSize: 30,
-            label: {
-              show: true,
-              formatter: ({name}) => name,
-              position: 'right',
-            },
+            type: 'custom',
             itemStyle: {
-              color: cores[stressIndex]
+              color: cores[stressIndex],
             },
+            renderItem: (params, api) => {
+              var categoryIndex = api.value(0);
+              var start = api.coord([api.value(1), categoryIndex]);
+              var end = api.coord([api.value(2), categoryIndex]);
+              var height = api.size([0, 1])[1] * 0.6;
+              var rectShape = echarts.graphic.clipRectByRect(
+                {
+                  x: start[0],
+                  y: start[1] - height / 2,
+                  width: end[0] - start[0],
+                  height: height
+                },
+                {
+                  x: params.coordSys.x,
+                  y: params.coordSys.y,
+                  width: params.coordSys.width,
+                  height: params.coordSys.height
+                }
+              );
+              return rectShape && {
+                type: 'rect',
+                transition: ['shape'],
+                shape: rectShape,
+                style: api.style(),
+                textContent: {
+                  type: 'text',
+                  style: {
+                    text: Object.values(categorias)[categoryIndex],
+                  }
+                }
+              };
+            }
           }
         ],
         tooltip: {
@@ -484,6 +553,7 @@
       let option = {
         title: {
           text: `Média das perguntas da categoria "${categorias[category]}"`,
+          subtext: "Concordância as perguntas tende a indicar estresse",
           left: "center"
         },
         yAxis: {
