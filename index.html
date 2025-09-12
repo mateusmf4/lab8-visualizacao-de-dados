@@ -160,19 +160,22 @@
       </h2>
       <p style="text-align: justify; padding: 10px 50px 10px 50px">
         Os dados foram coletados através de 843 estudantes universitários, de 17 a 22 anos, em relação as suas experiencias com o estresse e seus impactos.
-        Os dados coletados são varias perguntas em forma de questionario, com respostas de 1 (Discordo totalmente) a 5 (Concordo totalmente).
+        Os dados coletados consistem em varias perguntas em forma de questionario, com respostas de 1 (Discordo totalmente) a 5 (Concordo totalmente).
 
         (breve resumo das historias visualizadas)
       </p>
     </div>
 
     <div style="max-width: 1200px; height: 500px; margin-inline: auto; display: flex; position: relative;">
-      <div style="width: 100px; display: flex; flex-direction: column; align-items: center; gap: 35px;">
-        <button type="button" id="btn-voltar">Voltar</button>
-        <div style="display: flex; flex-direction: column; flex: 1; align-items: stretch; width: 100%; margin-bottom: 65px;">
-          <button id="btn-stress-2" type="button" class="botao-estresse" style="flex: 8;">N</button>
-          <button id="btn-stress-1" type="button" class="botao-estresse" style="flex: 86;">E</button>
-          <button id="btn-stress-0" type="button" class="botao-estresse" style="flex: 11;">D</button>
+      <div id="div-controls" style="width: 130px; display: flex; flex-direction: row; align-items: stretch; margin-block: 65px;">
+        <button type="button" id="btn-voltar" style="writing-mode: sideways-lr;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v7a4 4 0 0 1-4 4H4"/><path d="m9 10-5 5 5 5"/></svg>
+          Anterior
+        </button>
+        <div style="display: flex; flex-direction: column; flex: 1; align-items: stretch; width: 100%;">
+          <button id="btn-stress-2" type="button" class="botao-estresse" style="flex: 8;">Sem estresse</button>
+          <button id="btn-stress-1" type="button" class="botao-estresse" style="flex: 86;">Estresse<br>Positiva</button>
+          <button id="btn-stress-0" type="button" class="botao-estresse" style="flex: 11;">Estresse<br>Negativa</button>
         </div>
       </div>
       <div id="container" style="flex: 1;"></div>
@@ -226,10 +229,16 @@
     const stressNames = ["Distresse", "Eustresse", "Sem estresse"];
     const cores = ["#e790ab", "#8eda90", "#849fe8"]
     const categorias = {
-      "AES": "Academico",
+      "AES": "Acadêmico",
       "ESI": "Emocional",
       "SRF": "Social",
-      "PHI": "Fisico"
+      "PHI": "Físico"
+    };
+    const categorias2 = {
+      "AES": "acadêmica",
+      "ESI": "emocional",
+      "SRF": "social",
+      "PHI": "física"
     };
 
     const percDistress = [];
@@ -243,14 +252,16 @@
     function updateControls() {
       for (let i = 0; i <= 2; ++i) {
         const elem = document.getElementById('btn-stress-' + i);
-        if (currentChart === 0 || i === currentStress) {
+        elem.style.setProperty('--_color', cores[i]);
+        if (i === currentStress) {
           elem.style.opacity = 1.0;
-          elem.style.setProperty('--_color', cores[i]);
         } else {
           elem.style.opacity = 0.5;
         }
       }
       document.getElementById('btn-voltar').style.opacity = currentChart === 0 ? 0 : 1;
+      document.getElementById('div-controls').style.display = currentChart === 0 ? 'none' : 'flex';
+      myChart.resize();
     }
     updateControls();
 
@@ -297,7 +308,7 @@
 
       myChart.hideLoading();
       stackedChart();
-      // barsMedia(1)
+      // barsMedia(1);
       // barsCategoria(1, "AES")
     });
 
@@ -307,7 +318,7 @@
 
       let option = {
         title: {
-          text: "Tipos de estresse em estudantes",
+          text: "Tipos de estresse em estudantes universitários",
           left: "center"
         },
         tooltip: {
@@ -481,7 +492,7 @@
 
       let option = {
         title: {
-          text: `Média das respostas, por categoria`,
+          text: "Intervalo das respostas médias, por categoria",
           left: "center",
           subtext: "Concordância as perguntas tende a indicar estresse"
         },
@@ -552,6 +563,9 @@
                   type: 'text',
                   style: {
                     text: Object.values(categorias)[categoryIndex],
+                    fontSize: 20,
+                    stroke: 'rgba(255 255 255 / 50%)',
+                    lineWidth: 2,
                   }
                 }
               };
@@ -590,7 +604,7 @@
 
       let option = {
         title: {
-          text: `Média das perguntas da categoria "${categorias[category]}"`,
+          text: `Média de cada pergunta ${categorias2[category]}`,
           subtext: "Concordância as perguntas tende a indicar estresse",
           left: "center"
         },
