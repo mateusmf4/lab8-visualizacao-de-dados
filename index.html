@@ -331,11 +331,11 @@
           selectedMode: false,
           formatter: name => {
             if (name === 'Estresse positivo') {
-              return "Eustresse -\nEstresse positivo,\nque motiva e melhora\no desempenho"
+              return "Estresse positivo,\nque motiva e melhora\no desempenho"
             } else if (name === 'Estresse negativo') {
-              return "Distresse -\nEstresse negativo,\nque causa ansiedade\ne afeta o bem-estar"
+              return "Estresse negativo,\nque causa ansiedade\ne afeta o bem-estar"
             } else {
-              return "Sem estresse -\nPouco ou quase\nnenhum sinal\nde estresse"
+              return "Pouco ou quase\nnenhum sinal\nde estresse"
             }
           }
         },
@@ -416,7 +416,45 @@
               color: cores[2],
             },
           },
-        ]
+        ],
+        graphic: [
+      {
+        type: 'text',
+        left: 'center',
+        top: '50%',   // ajusta posição vertical
+        style: {
+          text: 'Eustresse',
+          fill: '#2c3e50',
+          fontSize: 14,
+          fontWeight: 'bold',
+          textAlign: 'center'
+        }
+      },
+      {
+        type: 'text',
+        right: '25%',
+        bottom: '15%',
+        style: {
+          text: 'Distresse',
+          fill: '#2c3e50',
+          fontSize: 14,
+          fontWeight: 'bold',
+          textAlign: 'right'
+        }
+      },
+      {
+        type: 'text',
+        left: '20%',
+        top: '15%',
+        style: {
+          text: 'Sem estresse',
+          fill: '#2c3e50',
+          fontSize: 14,
+          fontWeight: 'bold',
+          textAlign: 'left'
+        }
+      }
+    ]
       };
       myChart.setOption(option, true);
     }
