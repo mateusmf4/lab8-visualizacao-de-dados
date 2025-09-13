@@ -307,8 +307,8 @@
       percNostress[6] = (percNostress[5] + percNostress[7]) / 2;
 
       myChart.hideLoading();
-      stackedChart();
-      // barsMedia(0);
+      // stackedChart();
+      barsMedia(0);
       // barsCategoria(1, "AES")
     });
 
@@ -542,8 +542,8 @@
               var categoryIndex = api.value(0);
               var start = api.coord([api.value(1), categoryIndex]);
               var end = api.coord([api.value(2), categoryIndex]);
-              var height = api.size([0, 1])[1] * 0.6;
-              const middle = api.coord([(api.value(1) + api.value(2)) / 2, categoryIndex  ])
+              var height = api.size([0, 1])[1] * 0.03;
+              const middle = api.coord([(api.value(1) + api.value(2)) / 2, categoryIndex])
               var rectShape = echarts.graphic.clipRectByRect(
                 {
                   x: start[0],
@@ -559,22 +559,36 @@
                 }
               );
               return rectShape && {
-                type: 'circle',
-                x: middle[0],
-                y: middle[1],
-                shape: {
-                  r: 20,
-                },
-                style: api.style(),
-                textContent: {
-                  type: 'text',
-                  style: {
-                    text: Object.values(categorias)[categoryIndex],
-                    fontSize: 20,
-                    stroke: 'rgba(255 255 255 / 50%)',
-                    lineWidth: 2,
+                type: 'group',
+                children: [
+                  {
+                    type: 'rect',
+                    shape: rectShape,
+                    // style: api.style(),
+                    style: {
+                      opacity: 0.5,
+                    },
+                    transition: ['shape']
+                  },
+                  {
+                    type: 'circle',
+                    x: middle[0],
+                    y: middle[1],
+                    shape: {
+                      r: 20,
+                    },
+                    style: api.style(),
+                    textContent: {
+                      type: 'text',
+                      style: {
+                        text: Object.values(categorias)[categoryIndex],
+                        fontSize: 20,
+                        stroke: 'rgba(255 255 255 / 50%)',
+                        lineWidth: 2,
+                      }
+                    }
                   }
-                }
+                ]
               };
             }
           }
