@@ -173,9 +173,9 @@
           Anterior
         </button>
         <div style="display: flex; flex-direction: column; flex: 1; align-items: stretch; width: 100%;">
-          <button id="btn-stress-2" type="button" class="botao-estresse" style="flex: 8;">Sem estresse</button>
-          <button id="btn-stress-1" type="button" class="botao-estresse" style="flex: 86;">Estresse<br>Positiva</button>
-          <button id="btn-stress-0" type="button" class="botao-estresse" style="flex: 11;">Estresse<br>Negativa</button>
+          <button id="btn-stress-2" type="button" class="botao-estresse" style="flex: 8;">SEM ESTRESSE</button>
+          <button id="btn-stress-1" type="button" class="botao-estresse" style="flex: 86;">ESTRESSE<br>POSITIVO</button>
+          <button id="btn-stress-0" type="button" class="botao-estresse" style="flex: 11;">ESTRESSE<br>NEGATIVO</button>
         </div>
       </div>
       <div id="container" style="flex: 1;"></div>
@@ -308,7 +308,7 @@
 
       myChart.hideLoading();
       stackedChart();
-      // barsMedia(1);
+      // barsMedia(0);
       // barsCategoria(1, "AES")
     });
 
@@ -334,7 +334,7 @@
           right: '15%',
         },
         legend: {
-          data: ["Estresse positivo", "Estresse negativo", "Sem estresse"],
+          data: ["Sem estresse", "Estresse positivo", "Estresse negativo"],
           orient: 'vertical',
           icon: 'rect',
           right: 0,
@@ -429,43 +429,46 @@
           },
         ],
         graphic: [
-      {
-        type: 'text',
-        left: 'center',
-        top: '50%',   // ajusta posição vertical
-        style: {
-          text: 'Eustresse',
-          fill: '#2c3e50',
-          fontSize: 14,
-          fontWeight: 'bold',
-          textAlign: 'center'
-        }
-      },
-      {
-        type: 'text',
-        right: '25%',
-        bottom: '15%',
-        style: {
-          text: 'Distresse',
-          fill: '#2c3e50',
-          fontSize: 14,
-          fontWeight: 'bold',
-          textAlign: 'right'
-        }
-      },
-      {
-        type: 'text',
-        left: '20%',
-        top: '15%',
-        style: {
-          text: 'Sem estresse',
-          fill: '#2c3e50',
-          fontSize: 14,
-          fontWeight: 'bold',
-          textAlign: 'left'
-        }
-      }
-    ]
+          {
+            type: 'text',
+            z: 5,
+            left: 'center',
+            top: '50%',   // ajusta posição vertical
+            style: {
+              text: 'Estresse Positivo',
+              fill: '#2c3e50',
+              fontSize: 14,
+              fontWeight: 'bold',
+              textAlign: 'center'
+            }
+          },
+          {
+            type: 'text',
+            z: 5,
+            right: '22%',
+            bottom: '15%',
+            style: {
+              text: 'Estresse Negativo',
+              fill: '#2c3e50',
+              fontSize: 14,
+              fontWeight: 'bold',
+              textAlign: 'right'
+            }
+          },
+          {
+            type: 'text',
+            z: 5,
+            left: '20%',
+            top: '15%',
+            style: {
+              text: 'Sem Estresse',
+              fill: '#2c3e50',
+              fontSize: 14,
+              fontWeight: 'bold',
+              textAlign: 'left'
+            }
+          }
+        ]
       };
       myChart.setOption(option, true);
     }
@@ -494,7 +497,7 @@
         title: {
           text: "Intervalo das respostas médias, por categoria",
           left: "center",
-          subtext: "Concordância as perguntas tende a indicar estresse"
+          subtext: "Concordância as perguntas tende a indicar estresse negativo"
         },
         yAxis: {
           type: 'category',
@@ -517,7 +520,7 @@
         },
         series: [
           // {
-          //   data: values,
+          //   data: values.map(({value: x}) => (x[1] + x[2]) / 2),
           //   type: 'scatter',
           //   symbolSize: 30,
           //   label: {
@@ -540,6 +543,7 @@
               var start = api.coord([api.value(1), categoryIndex]);
               var end = api.coord([api.value(2), categoryIndex]);
               var height = api.size([0, 1])[1] * 0.6;
+              const middle = api.coord([(api.value(1) + api.value(2)) / 2, categoryIndex  ])
               var rectShape = echarts.graphic.clipRectByRect(
                 {
                   x: start[0],
@@ -555,9 +559,12 @@
                 }
               );
               return rectShape && {
-                type: 'rect',
-                transition: ['shape'],
-                shape: rectShape,
+                type: 'circle',
+                x: middle[0],
+                y: middle[1],
+                shape: {
+                  r: 20,
+                },
                 style: api.style(),
                 textContent: {
                   type: 'text',
@@ -598,14 +605,14 @@
       let medians = rawValues.map(x => average(x));
 
       // ordena pelo valor
-      let pairs = keys.map((key, i) => [key, medians[i]]).sort((a, b) => b[1] - a[1]);
+      let pairs = keys.map((key, i) => [key, medians[i]]).sort((a, b) => a[1] - b[1]);
       keys = pairs.map(([k, _]) => k);
       let values = pairs.map(([_, v]) => v);
 
       let option = {
         title: {
-          text: `Média de cada pergunta ${categorias2[category]}`,
-          subtext: "Concordância as perguntas tende a indicar estresse",
+          text: `Média de cada pergunta da categoria "${categorias[category]}"`,
+          subtext: "Concordância as perguntas tende a indicar estresse negativo",
           left: "center"
         },
         yAxis: {
