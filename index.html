@@ -168,17 +168,29 @@
 
     <div style="max-width: 1500px; height: 800px; margin-inline: auto; display: flex; position: relative; padding-inline: 10px;">
       <div id="div-controls" style="width: 130px; display: flex; flex-direction: row; align-items: stretch; margin-block: 65px;">
-        <button type="button" id="btn-voltar" style="writing-mode: sideways-lr;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v7a4 4 0 0 1-4 4H4"/><path d="m9 10-5 5 5 5"/></svg>
-          Anterior
-        </button>
-        <div style="display: flex; flex-direction: column; flex: 1; align-items: stretch; width: 100%;">
-          <button id="btn-stress-2" type="button" class="botao-estresse" style="flex: 8;">Sem estresse</button>
-          <button id="btn-stress-1" type="button" class="botao-estresse" style="flex: 86;">Estresse<br>Positivo</button>
-          <button id="btn-stress-0" type="button" class="botao-estresse" style="flex: 11;">Estresse<br>Negativo</button>
+        <div style="display: flex; flex-direction: column;">
+          <div style="display: flex; flex-direction: row; flex: 1;">
+            <button type="button" id="btn-voltar" style="writing-mode: sideways-lr;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v7a4 4 0 0 1-4 4H4"/><path d="m9 10-5 5 5 5"/></svg>
+              Anterior
+            </button>
+            <div style="display: flex; flex-direction: column; flex: 1; align-items: stretch; width: 100%; position: relative;">
+              <button id="btn-stress-2" type="button" class="botao-estresse" style="flex: 8;">Sem estresse</button>
+              <button id="btn-stress-1" type="button" class="botao-estresse" style="flex: 86;">Estresse<br>Positivo</button>
+              <button id="btn-stress-0" type="button" class="botao-estresse" style="flex: 11;">Estresse<br>Negativo</button>
+            </div>
+          </div>
+          <p style="position: absolute; width: 130px; bottom: -0px; padding: 0; margin: 0; font-size: 0.8rem; text-align: center; font-style: italic; color: #727272;">
+            Tamanho das barras representa a proporção total para todas as idades
+          </p>
         </div>
       </div>
       <div id="container" style="flex: 1;"></div>
+      <!-- <select id="ipt-genero" style="position: absolute; right: 0;">
+        <option value="ambos">Masculino e Feminino</option>
+        <option value="masc">Masculino</option>
+        <option value="fem">Feminino</option>
+      </select> -->
     </div>
 
     <div id="footer" style="height: 2%; margin-top: 50px">
@@ -241,13 +253,16 @@
       "PHI": "física"
     };
 
-    const percDistress = [];
-    const percEustress = [];
-    const percNostress = [];
+    let percDistress = [];
+    let percEustress = [];
+    let percNostress = [];
 
     let currentChart = 0;
     let currentStress = 0;
     let currentCategory = "AES";
+
+    myChart.showLoading();
+
 
     function updateControls() {
       for (let i = 0; i <= 2; ++i) {
@@ -285,13 +300,12 @@
       })
     }
 
-    myChart.showLoading();
+    function calculatePercentages() {
+      percDistress = [];
+      percEustress = [];
+      percNostress = [];
 
-    let dados;
-    fetch("./dados.json").then(r => r.json()).catch(e => alert("Erro ao carregar dados!")).then(d => {
-      dados = d;
-
-      for (let i = 17; i <= 24; ++i) {
+      for (let i = 17; i <= 22; ++i) {
         let idx = i - 17;
         let a = dados.EUS.AES.filter(x => x.Age === i).length;
         let b = dados.DIS.AES.filter(x => x.Age === i).length;
@@ -305,11 +319,48 @@
       percEustress[6] = (percEustress[5] + percEustress[7]) / 2;
       percDistress[6] = (percDistress[5] + percDistress[7]) / 2;
       percNostress[6] = (percNostress[5] + percNostress[7]) / 2;
+    }
+
+    let dadosOrig;
+    let dados;
+
+    // document.getElementById("ipt-genero").addEventListener("change", e => {
+    //   const opt = e.target.selectedIndex;
+    //   if (opt === 0) {
+    //     dados = dadosOrig;
+    //   } else {
+    //     let gender = opt === 1 ? 0 : 1;
+    //     dados = Object.fromEntries(Object.entries(dadosOrig).map(([key, values]) => {
+    //       return [key, Object.fromEntries(Object.entries(values).map(([key2, answers]) => {
+    //         return [key2, answers.filter(x => x.Gender === gender)];
+    //       }))]
+    //     }));
+    //   }
+    //   calculatePercentages();
+    //   if (currentChart === 0) {
+    //     stackedChart();
+    //   } else if (currentChart === 1) {
+    //     barsMedia(currentStress);
+    //   } else if (currentChart === 2) {
+    //     barsCategoria(currentStress, currentCategory);
+    //   }
+    // })
+
+    fetch("./dados.json").then(r => r.json()).catch(e => alert("Erro ao carregar dados!")).then(d => {
+      dadosOrig = dados = d;
+
+      calculatePercentages();
 
       myChart.hideLoading();
       stackedChart();
       // barsMedia(0);
       // barsCategoria(1, "AES")
+
+      // gambiarra
+      setTimeout(() => {
+        myChart.resize({width: 10});
+        myChart.resize({width: 'auto'});
+      }, 50);
     });
 
     function stackedChart() {
