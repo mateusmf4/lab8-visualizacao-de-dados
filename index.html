@@ -166,7 +166,7 @@
       </p>
     </div>
 
-    <div style="max-width: 1200px; height: 500px; margin-inline: auto; display: flex; position: relative;">
+    <div style="max-width: 1800px; height: 80vh; margin-inline: auto; display: flex; position: relative;">
       <div id="div-controls" style="width: 130px; display: flex; flex-direction: row; align-items: stretch; margin-block: 65px;">
         <button type="button" id="btn-voltar" style="writing-mode: sideways-lr;">
           <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v7a4 4 0 0 1-4 4H4"/><path d="m9 10-5 5 5 5"/></svg>
@@ -542,7 +542,7 @@
               var categoryIndex = api.value(0);
               var start = api.coord([api.value(1), categoryIndex]);
               var end = api.coord([api.value(2), categoryIndex]);
-              var height = api.size([0, 1])[1] * 0.03;
+              var height = api.size([0, 1])[1] * 0.015;
               const middle = api.coord([(api.value(1) + api.value(2)) / 2, categoryIndex])
               var rectShape = echarts.graphic.clipRectByRect(
                 {
@@ -575,7 +575,7 @@
                     x: middle[0],
                     y: middle[1],
                     shape: {
-                      r: 20,
+                      r: 15,
                     },
                     style: api.style(),
                     textContent: {
@@ -585,6 +585,7 @@
                         fontSize: 20,
                         stroke: 'rgba(255 255 255 / 50%)',
                         lineWidth: 2,
+                        y: '-25'
                       }
                     }
                   }
